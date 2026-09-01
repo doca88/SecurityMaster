@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityMasterService", "SecurityMasterService\SecurityMasterService.csproj", "{742E719B-F20E-433A-9FD9-B99E59628A5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityMaster.Services", "SecurityMaster.Services\SecurityMaster.Services.csproj", "{FAB4AE9F-F38A-48DB-80E2-667CCA6004B8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecurityMaster.Core", "SecurityMaster.Core\SecurityMaster.Core.csproj", "{FAB4AE9F-F38A-48DB-80E2-667CCA6004B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

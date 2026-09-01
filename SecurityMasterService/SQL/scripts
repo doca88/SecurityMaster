@@ -16,6 +16,7 @@ CREATE TABLE Strategy (
 CREATE TABLE [Order] (
     OrderId INT IDENTITY(1,1) PRIMARY KEY,
     Quantity DECIMAL(18,2) NOT NULL,
+    TradeDate DATETIME2 NOT NULL,
     ManagerId INT NOT NULL,
     StrategyId INT NOT NULL,
     SID BIGINT NOT NULL,
@@ -52,7 +53,7 @@ INSERT INTO Strategy (Display)
 SELECT TOP 10 'Strategy ' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS VARCHAR)
 FROM sys.objects;
 
--- Order (50) - random Manager, Strategy, Security, Quantity
+-- Order (50) - random Manager, Strategy, Security, Quantity, TradeDate
 DECLARE @i INT = 1;
 DECLARE @OrderId INT;
 DECLARE @TotalQty DECIMAL(18,2);
@@ -60,14 +61,18 @@ DECLARE @AllocCount INT;
 DECLARE @j INT;
 DECLARE @Remaining DECIMAL(18,2);
 DECLARE @AllocQty DECIMAL(18,2);
+DECLARE @TradeDate DATETIME2;
 
 WHILE @i <= 50
 BEGIN
     SET @TotalQty = CAST((RAND() * 1000 + 100) AS DECIMAL(18,2));
+    -- random datum u poslednjih 30 dana
+    SET @TradeDate = DATEADD(SECOND, -ABS(CHECKSUM(NEWID())) % (30 * 24 * 60 * 60), SYSDATETIME());
 
-    INSERT INTO [Order] (Quantity, ManagerId, StrategyId, SID)
+    INSERT INTO [Order] (Quantity, TradeDate, ManagerId, StrategyId, SID)
     VALUES (
         @TotalQty,
+        @TradeDate,
         (SELECT TOP 1 Id FROM Manager ORDER BY NEWID()),
         (SELECT TOP 1 Id FROM Strategy ORDER BY NEWID()),
         (SELECT TOP 1 SID FROM Security ORDER BY NEWID())
