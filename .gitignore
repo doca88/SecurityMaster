@@ -1,0 +1,86 @@
+## .NET / Visual Studio / VS Code .gitignore
+
+# Build rezultati
+bin/
+obj/
+out/
+
+# Visual Studio fajlovi
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+
+# Build artefakti
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# Test rezultati
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+
+# Publish
+**/[Pp]ublish/
+*.Publish.xml
+*.pubxml
+*.pubxml.user
+*.azurePubxml
+
+# ASP.NET
+**/wwwroot/lib/
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# EF Core migracije (opciono - ostavi ako želiš da ih pratiš u repo-u)
+# Migrations/
+
+# User Secrets
+secrets.json
+
+# Ostalo
+*.log
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+[Dd]esktop.ini
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Rezultati profajlinga
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Docker
+**/docker-compose.override.yml

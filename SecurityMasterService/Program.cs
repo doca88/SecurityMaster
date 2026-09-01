@@ -33,6 +33,12 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
+app.MapGet("/test", (int id) =>
+{
+    if(id > 0)
+   return "PRC";
+   return "PRC2";
+}).WithName("GetTest");
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
