@@ -1,0 +1,106 @@
+CREATE TABLE Security (
+    SID BIGINT NOT NULL PRIMARY KEY,
+    Description NVARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Manager (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Display NVARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Strategy (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Display NVARCHAR(100) NOT NULL
+);
+
+CREATE TABLE [Order] (
+    OrderId INT IDENTITY(1,1) PRIMARY KEY,
+    Quantity DECIMAL(18,2) NOT NULL,
+    ManagerId INT NOT NULL,
+    StrategyId INT NOT NULL,
+    SID BIGINT NOT NULL,
+    CONSTRAINT FK_Order_Manager FOREIGN KEY (ManagerId) REFERENCES Manager(Id),
+    CONSTRAINT FK_Order_Strategy FOREIGN KEY (StrategyId) REFERENCES Strategy(Id),
+    CONSTRAINT FK_Order_Security FOREIGN KEY (SID) REFERENCES Security(SID)
+);
+
+CREATE TABLE Allocation (
+    AllocationId INT IDENTITY(1,1) PRIMARY KEY,
+    Quantity DECIMAL(18,2) NOT NULL,
+    ManagerId INT NOT NULL,
+    StrategyId INT NOT NULL,
+    OrderId INT NOT NULL,
+    CONSTRAINT FK_Allocation_Manager FOREIGN KEY (ManagerId) REFERENCES Manager(Id),
+    CONSTRAINT FK_Allocation_Strategy FOREIGN KEY (StrategyId) REFERENCES Strategy(Id),
+    CONSTRAINT FK_Allocation_Order FOREIGN KEY (OrderId) REFERENCES [Order](OrderId)
+);
+
+-- Security (10)
+INSERT INTO Security (SID, Description)
+SELECT TOP 10
+    1000 + n,
+    'Security ' + CAST(1000 + n AS VARCHAR)
+FROM (SELECT TOP 10 ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n FROM sys.objects) t;
+
+-- Manager (10)
+INSERT INTO Manager (Display)
+SELECT TOP 10 'Manager ' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS VARCHAR)
+FROM sys.objects;
+
+-- Strategy (10)
+INSERT INTO Strategy (Display)
+SELECT TOP 10 'Strategy ' + CAST(ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS VARCHAR)
+FROM sys.objects;
+
+-- Order (50) - random Manager, Strategy, Security, Quantity
+DECLARE @i INT = 1;
+DECLARE @OrderId INT;
+DECLARE @TotalQty DECIMAL(18,2);
+DECLARE @AllocCount INT;
+DECLARE @j INT;
+DECLARE @Remaining DECIMAL(18,2);
+DECLARE @AllocQty DECIMAL(18,2);
+
+WHILE @i <= 50
+BEGIN
+    SET @TotalQty = CAST((RAND() * 1000 + 100) AS DECIMAL(18,2));
+
+    INSERT INTO [Order] (Quantity, ManagerId, StrategyId, SID)
+    VALUES (
+        @TotalQty,
+        (SELECT TOP 1 Id FROM Manager ORDER BY NEWID()),
+        (SELECT TOP 1 Id FROM Strategy ORDER BY NEWID()),
+        (SELECT TOP 1 SID FROM Security ORDER BY NEWID())
+    );
+
+    SET @OrderId = SCOPE_IDENTITY();
+
+    -- 1 do 4 alokacije po orderu
+    SET @AllocCount = ABS(CHECKSUM(NEWID())) % 4 + 1;
+    SET @Remaining = @TotalQty;
+    SET @j = 1;
+
+    WHILE @j <= @AllocCount
+    BEGIN
+        IF @j = @AllocCount
+            SET @AllocQty = @Remaining -- poslednja alokacija pokupi ostatak
+        ELSE
+            SET @AllocQty = CAST((@Remaining / (@AllocCount - @j + 1)) * (0.5 + RAND()) AS DECIMAL(18,2));
+
+        IF @AllocQty > @Remaining SET @AllocQty = @Remaining;
+        IF @AllocQty < 0 SET @AllocQty = 0;
+
+        INSERT INTO Allocation (Quantity, ManagerId, StrategyId, OrderId)
+        VALUES (
+            @AllocQty,
+            (SELECT TOP 1 Id FROM Manager ORDER BY NEWID()),
+            (SELECT TOP 1 Id FROM Strategy ORDER BY NEWID()),
+            @OrderId
+        );
+
+        SET @Remaining = @Remaining - @AllocQty;
+        SET @j = @j + 1;
+    END
+
+    SET @i = @i + 1;
+END
