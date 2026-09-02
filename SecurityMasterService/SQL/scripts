@@ -1,5 +1,5 @@
 CREATE TABLE Security (
-    SID BIGINT NOT NULL PRIMARY KEY,
+    SID BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     Description NVARCHAR(255) NOT NULL
 );
 
@@ -37,9 +37,8 @@ CREATE TABLE Allocation (
 );
 
 -- Security (10)
-INSERT INTO Security (SID, Description)
+INSERT INTO Security (Description)
 SELECT TOP 10
-    1000 + n,
     'Security ' + CAST(1000 + n AS VARCHAR)
 FROM (SELECT TOP 10 ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS n FROM sys.objects) t;
 

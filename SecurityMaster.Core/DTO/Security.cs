@@ -1,5 +1,5 @@
 public class Security
 {
-        public int Id { get; set; }
-        public required string Name { get; set; }
+        public long Sid { get; set; }
+        public required string Description { get; set; }
 }

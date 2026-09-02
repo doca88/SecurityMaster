@@ -14,7 +14,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
 
 app.MapGet("", () =>
 {
@@ -22,11 +21,11 @@ app.MapGet("", () =>
    { 
         new Manager()
         {
-            Name = "Juni"
+            Display = "Juni"
         },
         new Strategy()
         {
-            Name = "Mica"
+            Display = "Mica"
         }
    };
 }).WithName("GetTest");
