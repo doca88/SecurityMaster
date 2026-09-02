@@ -20,8 +20,5 @@ public class AllocationConfiguration : IEntityTypeConfiguration<Allocation>
             .WithMany()
             .HasForeignKey(a => a.StrategyId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // Order -> Allocations veza je već definisana u OrderConfiguration
-        // (HasMany/WithOne), ovde je ne ponavljamo da ne dupliramo mapiranje
     }
 }

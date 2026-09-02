@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 public class Allocation
 {
     public int AllocationId { get; set; }
@@ -8,5 +10,7 @@ public class Allocation
 
     public required Manager Manager { get; set; }
     public required Strategy Strategy { get; set; }
-    public required Order Order { get; set; }
+
+    [JsonIgnore]
+    public Order Order { get; set; } = null!;
 }
