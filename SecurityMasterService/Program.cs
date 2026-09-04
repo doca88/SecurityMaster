@@ -54,12 +54,18 @@ app.MapGet("", async (HttpContext http, SecurityMasterDbContext db) =>
         .Include(o => o.Allocations)
         .AsQueryable();
 
+    var searchableFields = typeof(Order)
+        .GetProperties()
+        .Where(p => p.PropertyType == typeof(string))
+        .Select(p => p.Name)
+        .ToArray();
+
     var result = await baseQuery.ExecuteAsync(
         query,
-        searchableFields: new[] {"orderId" });
+        searchableFields: searchableFields);
 
     return Results.Ok(result);
 }).WithName("GetOrders");
 app.Run();
 
-//http://localhost:1111/?orderId=10
+//http://localhost:1111?orderId=10
