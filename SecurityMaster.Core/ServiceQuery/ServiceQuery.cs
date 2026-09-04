@@ -44,9 +44,13 @@ public static class ServiceQueryExtensions
     public static async Task<PagedResult<T>> ExecuteAsync<T>(
         this IQueryable<T> query,
         ServiceQuery<T> serviceQuery,
-        string[]? searchableFields = null,
+        Type type,
         CancellationToken ct = default)
     {
+        var searchableFields = type.GetProperties()
+        .Where(p => p.PropertyType == typeof(string))
+        .Select(p => p.Name)
+        .ToArray();
         query = query
             .ApplyFilters(serviceQuery.Filters)
             .ApplySearch(serviceQuery.Search, searchableFields ?? Array.Empty<string>())
@@ -77,7 +81,7 @@ public static class ServiceQueryExtensions
         if (filter.Operator == FilterOperator.Contains)
         {
             if (propertyType != typeof(string))
-                throw new NotSupportedException($"Contains je podržan samo za string polja ('{filter.Field}').");
+                throw new NotSupportedException($"Contains is supported only for string types ('{filter.Field}').");
 
             body = Expression.Call(property, "Contains", null, Expression.Constant(filter.Value));
         }
@@ -93,7 +97,7 @@ public static class ServiceQueryExtensions
                 FilterOperator.GreaterThanOrEqual => Expression.GreaterThanOrEqual(property, constant),
                 FilterOperator.LessThan => Expression.LessThan(property, constant),
                 FilterOperator.LessThanOrEqual => Expression.LessThanOrEqual(property, constant),
-                _ => throw new NotSupportedException($"Operator {filter.Operator} nije podržan.")
+                _ => throw new NotSupportedException($"Operator {filter.Operator}")
             };
         }
 
