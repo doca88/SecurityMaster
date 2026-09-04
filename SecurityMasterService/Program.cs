@@ -17,17 +17,49 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.MapGet("", async () =>
+app.MapGet("", async (HttpContext http, SecurityMasterDbContext db) =>
 {
-   
-    using (var scope = app.Services.CreateScope())
+    var q = http.Request.Query;
+
+    var query = new ServiceQuery<Order>
     {
-        var db = scope.ServiceProvider.GetRequiredService<SecurityMasterDbContext>();
-        return await db.Orders.Include(o=>o.Manager).
-        Include(o=>o.Strategy).
-        Include(o=>o.Security).
-        Include(o=>o.Allocations).ToListAsync();
+        Page = int.TryParse(q["page"], out var p) ? p : 1,
+        PageSize = int.TryParse(q["pageSize"], out var ps) ? ps : 20,
+        Search = q["search"],
+        SortBy = q["sortBy"],
+        SortDescending = bool.TryParse(q["sortDescending"], out var desc) && desc
+    };
+
+    // reserved parametri koji NE idu u Filters
+    var reserved = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        { "page", "pageSize", "search", "sortBy", "sortDescending" };
+
+    foreach (var key in q.Keys)
+    {
+        if (reserved.Contains(key)) continue;
+        if (string.IsNullOrWhiteSpace(q[key])) continue;
+
+        query.Filters.Add(new QueryFilter
+        {
+            Field = key,
+            Operator = FilterOperator.Equals,
+            Value = q[key]!
+        });
     }
 
-}).WithName("GetTest");
+    var baseQuery = db.Orders
+        .Include(o => o.Manager)
+        .Include(o => o.Strategy)
+        .Include(o => o.Security)
+        .Include(o => o.Allocations)
+        .AsQueryable();
+
+    var result = await baseQuery.ExecuteAsync(
+        query,
+        searchableFields: new[] {"orderId" });
+
+    return Results.Ok(result);
+}).WithName("GetOrders");
 app.Run();
+
+//http://localhost:1111/?orderId=10
