@@ -14,5 +14,4 @@
   <ItemGroup>
     <ProjectReference Include="..\SecurityMaster.Core\SecurityMaster.Core.csproj" />
   </ItemGroup>
-
 </Project>

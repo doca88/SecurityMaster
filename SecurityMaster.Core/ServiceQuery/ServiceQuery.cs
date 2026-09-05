@@ -66,43 +66,44 @@ public static class ServiceQueryExtensions
         return query;
     }
 
-    private static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, QueryFilter filter)
+private static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, QueryFilter filter)
+{
+    if (string.IsNullOrWhiteSpace(filter.Field))
+        return query;
+
+    var parameter = Expression.Parameter(typeof(T), "x");
+    var property = BuildPropertyExpression(parameter, filter.Field); // podržava i "Manager.Name"
+    var propertyType = property.Type;
+    var underlyingType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
+
+    Expression body;
+
+    if (filter.Operator == FilterOperator.Contains)
     {
-        if (string.IsNullOrWhiteSpace(filter.Field))
-            return query;
+        Expression stringProperty = propertyType == typeof(string)
+            ? property
+            : Expression.Call(property, "ToString", null);
 
-        var parameter = Expression.Parameter(typeof(T), "x");
-        var property = BuildPropertyExpression(parameter, filter.Field); // podržava i "Manager.Name"
-        var propertyType = property.Type;
-        var underlyingType = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
+        body = Expression.Call(stringProperty, "Contains", null, Expression.Constant(filter.Value));
+    }
+    else
+    {
+        object? convertedValue = ConvertValue(filter.Value, underlyingType);
+        var constant = Expression.Constant(convertedValue, propertyType);
 
-        Expression body;
-
-        if (filter.Operator == FilterOperator.Contains)
+        body = filter.Operator switch
         {
-            if (propertyType != typeof(string))
-                throw new NotSupportedException($"Contains is supported only for string types ('{filter.Field}').");
+            FilterOperator.Equals => Expression.Equal(property, constant),
+            FilterOperator.GreaterThan => Expression.GreaterThan(property, constant),
+            FilterOperator.GreaterThanOrEqual => Expression.GreaterThanOrEqual(property, constant),
+            FilterOperator.LessThan => Expression.LessThan(property, constant),
+            FilterOperator.LessThanOrEqual => Expression.LessThanOrEqual(property, constant),
+            _ => throw new NotSupportedException($"Operator {filter.Operator}")
+        };
+    }
 
-            body = Expression.Call(property, "Contains", null, Expression.Constant(filter.Value));
-        }
-        else
-        {
-            object? convertedValue = ConvertValue(filter.Value, underlyingType);
-            var constant = Expression.Constant(convertedValue, propertyType);
-
-            body = filter.Operator switch
-            {
-                FilterOperator.Equals => Expression.Equal(property, constant),
-                FilterOperator.GreaterThan => Expression.GreaterThan(property, constant),
-                FilterOperator.GreaterThanOrEqual => Expression.GreaterThanOrEqual(property, constant),
-                FilterOperator.LessThan => Expression.LessThan(property, constant),
-                FilterOperator.LessThanOrEqual => Expression.LessThanOrEqual(property, constant),
-                _ => throw new NotSupportedException($"Operator {filter.Operator}")
-            };
-        }
-
-        var lambda = Expression.Lambda<Func<T, bool>>(body, parameter);
-        return query.Where(lambda);
+    var lambda = Expression.Lambda<Func<T, bool>>(body, parameter);
+    return query.Where(lambda);
     }
 
     public static IQueryable<T> ApplySearch<T>(this IQueryable<T> query, string? search, string[] searchableFields)

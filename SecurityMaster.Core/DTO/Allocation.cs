@@ -14,3 +14,11 @@ public class Allocation
     [JsonIgnore]
     public Order Order { get; set; } = null!;
 }
+
+public class CreateAllocationRequest
+{
+    public decimal Quantity { get; set; }
+    public int ManagerId { get; set; }
+    public int StrategyId { get; set; }
+    public int OrderId { get; set; }
+}
