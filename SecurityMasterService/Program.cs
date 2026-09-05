@@ -5,9 +5,10 @@ using SecurityMasterService.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
+
 builder.Services.AddOpenApi();
-builder.Services.AddDbContext<SecurityMasterDbContext>(x =>
-    x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<SecurityMasterDbContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddSingleton(new AllowedFields<Order>(FilterFieldResolver.GetAllowedFields(typeof(Order))));
 builder.Services.AddSingleton(new AllowedFields<Security>(FilterFieldResolver.GetAllowedFields(typeof(Security))));
@@ -17,10 +18,13 @@ builder.Services.AddSingleton(new AllowedFields<Strategy>(FilterFieldResolver.Ge
 
 var app = builder.Build();
 
+//TODO
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.MapControllers();
 
 // get
 app.MapFilterableGet<SecurityMasterDbContext, Order>("/orders", "GetOrders", db => db.Orders
@@ -32,7 +36,7 @@ app.MapFilterableGet<SecurityMasterDbContext, Order>("/orders", "GetOrders", db 
 
 app.MapFilterableGet<SecurityMasterDbContext, Security>("/securities", "GetSecurities", db => db.Securities.AsNoTracking());
 app.MapFilterableGet<SecurityMasterDbContext, Allocation>("/allocations", "GetAllocations", db => db.Allocations.AsNoTracking());
-app.MapFilterableGet<SecurityMasterDbContext, Manager>("/managers", "GetManagers", db => db.Managers.AsNoTracking());
+//app.MapFilterableGet<SecurityMasterDbContext, Manager>("/managers", "GetManagers", db => db.Managers.AsNoTracking());
 app.MapFilterableGet<SecurityMasterDbContext, Strategy>("/strategies", "GetStrategies", db => db.Strategies.AsNoTracking());
 
 // post
@@ -62,8 +66,8 @@ app.MapPost("/orders", async (SecurityMasterDbContext db, [FromBody] CreateOrder
     return await EntityHelper.CreateAsync(db, db.Orders, order, o => o.OrderId, "/orders");
 });
 
-app.MapPost("/managers", async (SecurityMasterDbContext db, [FromBody] CreateManagerRequest request) =>
-    await EntityHelper.CreateAsync(db, db.Managers, new Manager { Display = request.Display }, m => m.Id, "/managers"));
+//app.MapPost("/managers", async (SecurityMasterDbContext db, [FromBody] CreateManagerRequest request) =>
+//    await EntityHelper.CreateAsync(db, db.Managers, new Manager { Display = request.Display }, m => m.Id, "/managers"));
 
 app.MapPost("/strategies", async (SecurityMasterDbContext db, [FromBody] CreateStrategyRequest request) =>
     await EntityHelper.CreateAsync(db, db.Strategies, new Strategy { Display = request.Display }, s => s.Id, "/strategies"));
