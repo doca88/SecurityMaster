@@ -61,50 +61,90 @@ public class FilterParser<T>
         return ParseComparison();
     }
 
-   private Expression ParseComparison()
-{
-    var identToken = Expect(TokenType.Identifier);
-
-    if (!_allowedFields.Contains(identToken.Text))
-        throw new FormatException($"Field '{identToken.Text}' is not filterable");
-
-    var property = BuildPropertyChain(identToken.Text);
-
-    var opToken = Current;
-    _pos++;
-
-    if (opToken.Type == TokenType.Contains)
+    private Expression ParseComparison()
     {
-        var valueToken = Current; _pos++;
-        var value = Expression.Constant(valueToken.Text);
-        var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) })!;
-        return Expression.Call(property, containsMethod, value);
+        var identToken = Expect(TokenType.Identifier);
+
+        if (!_allowedFields.Contains(identToken.Text))
+            throw new FormatException($"Field '{identToken.Text}' is not filterable");
+
+        var opToken = Current;
+        _pos++;
+
+        var valueToken = Current;
+        _pos++;
+
+        var parts = identToken.Text.Split('.');
+        return BuildComparison(_param, parts, 0, opToken, valueToken);
     }
 
-    var rawValueToken = Current; _pos++;
-    var constant = ConvertValue(rawValueToken, property.Type);
-
-    return opToken.Type switch
+    private Expression BuildComparison(Expression instance, string[] parts, int index, Token opToken, Token valueToken)
     {
-        TokenType.Equal => Expression.Equal(property, constant),
-        TokenType.NotEqual => Expression.NotEqual(property, constant),
-        TokenType.GreaterThan => Expression.GreaterThan(property, constant),
-        TokenType.LessThan => Expression.LessThan(property, constant),
-        TokenType.GreaterOrEqual => Expression.GreaterThanOrEqual(property, constant),
-        TokenType.LessOrEqual => Expression.LessThanOrEqual(property, constant),
-        _ => throw new FormatException($"Unexpected operator '{opToken.Text}'")
-    };
-}
+        var property = Expression.Property(instance, parts[index]);
+        var elementType = GetCollectionElementType(property.Type);
 
-private Expression BuildPropertyChain(string path)
-{
-    Expression current = _param;
-    foreach (var part in path.Split('.'))
-    {
-        current = Expression.Property(current, part);
+        if (elementType != null)
+        {
+            var remaining = parts.Skip(index + 1).ToArray();
+            if (remaining.Length == 0)
+                throw new FormatException($"Cannot filter directly on collection field '{string.Join(".", parts)}'");
+
+            var innerParam = Expression.Parameter(elementType, "p" + index);
+            var innerBody = BuildComparison(innerParam, remaining, 0, opToken, valueToken);
+
+            var anyMethod = typeof(Enumerable).GetMethods()
+                .First(m => m.Name == nameof(Enumerable.Any) && m.GetParameters().Length == 2)
+                .MakeGenericMethod(elementType);
+
+            var lambda = Expression.Lambda(innerBody, innerParam);
+            return Expression.Call(anyMethod, property, lambda);
+        }
+
+        if (index < parts.Length - 1)
+        {
+            return BuildComparison(property, parts, index + 1, opToken, valueToken);
+        }
+
+        return BuildFinalComparison(property, opToken, valueToken);
     }
-    return current;
-}
+
+    private Expression BuildFinalComparison(Expression property, Token opToken, Token valueToken)
+    {
+        if (opToken.Type == TokenType.Contains)
+        {
+            var value = Expression.Constant(valueToken.Text);
+            var containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) })!;
+            return Expression.Call(property, containsMethod, value);
+        }
+
+        var constant = ConvertValue(valueToken, property.Type);
+
+        return opToken.Type switch
+        {
+            TokenType.Equal => Expression.Equal(property, constant),
+            TokenType.NotEqual => Expression.NotEqual(property, constant),
+            TokenType.GreaterThan => Expression.GreaterThan(property, constant),
+            TokenType.LessThan => Expression.LessThan(property, constant),
+            TokenType.GreaterOrEqual => Expression.GreaterThanOrEqual(property, constant),
+            TokenType.LessOrEqual => Expression.LessThanOrEqual(property, constant),
+            _ => throw new FormatException($"Unexpected operator '{opToken.Text}'")
+        };
+    }
+
+    private static Type? GetCollectionElementType(Type type)
+    {
+        if (type == typeof(string)) return null;
+
+        if (type.IsGenericType && typeof(System.Collections.IEnumerable).IsAssignableFrom(type))
+        {
+            return type.GetGenericArguments().FirstOrDefault();
+        }
+
+        var ienum = type.GetInterfaces()
+            .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+        return ienum?.GetGenericArguments().FirstOrDefault();
+    }
 
     private Expression ConvertValue(Token token, Type targetType)
     {

@@ -5,7 +5,7 @@ public class Order
     public DateTime TradeDate { get; set; }
     public int ManagerId { get; set; }
     public int StrategyId { get; set; }
-    public long SID { get; set; }
+    public long Sid { get; set; }
 
     public required Manager Manager { get; set; }
     public required Strategy Strategy { get; set; }
@@ -19,5 +19,5 @@ public class CreateOrderRequest
     public DateTime TradeDate { get; set; }
     public int ManagerId { get; set; }
     public int StrategyId { get; set; }
-    public long SecurityId { get; set; }
+    public long Sid { get; set; }
 }

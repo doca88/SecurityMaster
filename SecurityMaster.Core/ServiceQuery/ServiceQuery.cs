@@ -40,7 +40,6 @@ public class PagedResult<T>
 
 public static class ServiceQueryExtensions
 {
-    // Glavna metoda - primenjuje sve odjednom
     public static async Task<PagedResult<T>> ExecuteAsync<T>(
         this IQueryable<T> query,
         ServiceQuery<T> serviceQuery,
@@ -53,9 +52,7 @@ public static class ServiceQueryExtensions
         .ToArray();
         query = query
             .ApplyFilters(serviceQuery.Filters)
-            .ApplySearch(serviceQuery.Search, searchableFields ?? Array.Empty<string>())
             .ApplySort(serviceQuery.SortBy, serviceQuery.SortDescending);
-
         return await query.ToPagedResultAsync(serviceQuery.Page, serviceQuery.PageSize, ct);
     }
 
@@ -104,33 +101,6 @@ private static IQueryable<T> ApplyFilter<T>(this IQueryable<T> query, QueryFilte
 
     var lambda = Expression.Lambda<Func<T, bool>>(body, parameter);
     return query.Where(lambda);
-    }
-
-    public static IQueryable<T> ApplySearch<T>(this IQueryable<T> query, string? search, string[] searchableFields)
-    {
-        if (string.IsNullOrWhiteSpace(search) || searchableFields.Length == 0)
-            return query;
-
-        var parameter = Expression.Parameter(typeof(T), "x");
-        Expression? combined = null;
-
-        foreach (var field in searchableFields)
-        {
-            var property = BuildPropertyExpression(parameter, field);
-            if (property.Type != typeof(string)) continue;
-
-            // null-safe: x.Field != null && x.Field.Contains(search)
-            var notNull = Expression.NotEqual(property, Expression.Constant(null, typeof(string)));
-            var contains = Expression.Call(property, "Contains", null, Expression.Constant(search));
-            var safeContains = Expression.AndAlso(notNull, contains);
-
-            combined = combined == null ? safeContains : Expression.OrElse(combined, safeContains);
-        }
-
-        if (combined == null) return query;
-
-        var lambda = Expression.Lambda<Func<T, bool>>(combined, parameter);
-        return query.Where(lambda);
     }
 
     public static IQueryable<T> ApplySort<T>(this IQueryable<T> query, string? sortBy, bool descending)

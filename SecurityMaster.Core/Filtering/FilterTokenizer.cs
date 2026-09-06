@@ -34,6 +34,7 @@ public class FilterTokenizer
             if (Match(">=")) { tokens.Add(new Token(TokenType.GreaterOrEqual, ">=")); continue; }
             if (Match("<=")) { tokens.Add(new Token(TokenType.LessOrEqual, "<=")); continue; }
             if (Match("!=")) { tokens.Add(new Token(TokenType.NotEqual, "!=")); continue; }
+            if (Match("==")) { tokens.Add(new Token(TokenType.Equal, "==")); continue; }
             if (Match("=")) { tokens.Add(new Token(TokenType.Equal, "=")); continue; }
             if (Match(">")) { tokens.Add(new Token(TokenType.GreaterThan, ">")); continue; }
             if (Match("<")) { tokens.Add(new Token(TokenType.LessThan, "<")); continue; }

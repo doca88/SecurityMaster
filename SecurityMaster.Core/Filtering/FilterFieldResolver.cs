@@ -1,4 +1,5 @@
 namespace SecurityMaster.Core.Filtering;
+
 public static class FilterFieldResolver
 {
     public static HashSet<string> GetAllowedFields(Type type, int maxDepth = 2)
@@ -21,7 +22,15 @@ public static class FilterFieldResolver
             var isCollection = propType != typeof(string)
                 && typeof(System.Collections.IEnumerable).IsAssignableFrom(propType);
 
-            if (isCollection) continue; // preskoči kolekcije (Allocations, itd.) — nema smisla filtrirati po njima ovako
+            if (isCollection)
+            {
+                var elementType = propType.IsGenericType ? propType.GetGenericArguments().FirstOrDefault() : null;
+                if (elementType != null)
+                {
+                    Collect(elementType, path, depth + 1, maxDepth, result, visited);
+                }
+                continue;
+            }
 
             var isSimple = propType.IsPrimitive || propType.IsEnum
                 || propType == typeof(string) || propType == typeof(decimal)

@@ -5,27 +5,33 @@ using SecurityMasterService.Data;
 
 namespace SecurityMasterService.Controllers;
 
-[ApiController]
-[Route("managers")]
+    [ApiController]
+    [Route("managers")]
     public class ManagersController : ControllerBase
     {
-    private readonly SecurityMasterDbContext _db;
-    private readonly AllowedFields<Manager> _allowedFields;
+    private readonly SecurityMasterDbContext db;
+    private readonly AllowedFields<Manager> allowedFields;
 
     public ManagersController(SecurityMasterDbContext db, AllowedFields<Manager> allowedFields)
     {
-        _db = db;
-        _allowedFields = allowedFields;
+        this.db = db;
+        this.allowedFields = allowedFields;
     }
 
-   [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] string? filter)
+    [HttpGet]
+    public async Task<IResult> Get()
     {
-        IQueryable<Manager> query = _db.Managers.AsNoTracking();
+        var baseQuery = this.db.Managers.AsQueryable();
+        return await QueryHelper.HandleQuery(Request.Query, baseQuery, this.allowedFields.Fields);
+    }
 
-        var baseQuery = _db.Managers.AsQueryable();
-        var result = await QueryHelper.HandleQuery(Request.Query, baseQuery, _allowedFields.Fields);
-        return Ok(result);
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var manager = await this.db.Managers.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
+        if (manager == null)
+            return NotFound();
+        return Ok(manager);
     }
 
     [HttpPost]
@@ -36,8 +42,37 @@ namespace SecurityMasterService.Controllers;
             Display = request.Display
         };
 
-        _db.Managers.Add(manager);
-        await _db.SaveChangesAsync();
+        this.db.Managers.Add(manager);
+        await this.db.SaveChangesAsync();
         return Created($"/managers/{manager.Id}", manager);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] CreateManagerRequest request)
+    {
+        var manager = await this.db.Managers.FirstOrDefaultAsync(m => m.Id == id);
+        if (manager == null)
+            return NotFound();
+
+        manager.Display = request.Display;
+
+        await this.db.SaveChangesAsync();
+        return Ok(manager);
+    }
+    
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var manager = await this.db.Managers.FirstOrDefaultAsync(m => m.Id == id);
+        if (manager == null)
+            return NotFound();
+
+        var hasOrders = await this.db.Orders.AnyAsync(o => o.ManagerId == id);
+        if (hasOrders)
+            return Conflict("Manager is already used, unable to delete it.");
+
+        this.db.Managers.Remove(manager);
+        await this.db.SaveChangesAsync();
+        return Ok();
     }
 }

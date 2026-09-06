@@ -26,7 +26,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         builder.HasOne(o => o.Security)
             .WithMany()
-            .HasForeignKey(o => o.SID)
+            .HasForeignKey(o => o.Sid)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(o => o.Allocations)
