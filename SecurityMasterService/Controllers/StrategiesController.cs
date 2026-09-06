@@ -11,11 +11,13 @@ public class StrategiesController : ControllerBase
 {
     private readonly SecurityMasterDbContext db;
     private readonly AllowedFields<Strategy> allowedFields;
+    private readonly ILogger<ManagersController> logger;
 
-    public StrategiesController(SecurityMasterDbContext db, AllowedFields<Strategy> allowedFields)
+    public StrategiesController(SecurityMasterDbContext db, AllowedFields<Strategy> allowedFields, ILogger<ManagersController> logger)
     {
         this.db = db;
         this.allowedFields = allowedFields;
+        this.logger = logger;
     }
 
     [HttpGet]

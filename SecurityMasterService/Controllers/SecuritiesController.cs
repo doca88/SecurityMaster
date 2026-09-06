@@ -11,11 +11,13 @@ public class SecuritiesController : ControllerBase
 {
     private readonly SecurityMasterDbContext db;
     private readonly AllowedFields<Security> allowedFields;
+    private readonly ILogger<ManagersController> logger;
 
-    public SecuritiesController(SecurityMasterDbContext db, AllowedFields<Security> allowedFields)
+    public SecuritiesController(SecurityMasterDbContext db, AllowedFields<Security> allowedFields, ILogger<ManagersController> logger)
     {
         this.db = db;
         this.allowedFields = allowedFields;
+        this.logger = logger;
     }
 
     [HttpGet]

@@ -12,10 +12,13 @@ public class AllocationsController : ControllerBase
     private readonly SecurityMasterDbContext db;
     private readonly AllowedFields<Allocation> allowedFields;
 
-    public AllocationsController(SecurityMasterDbContext db, AllowedFields<Allocation> allowedFields)
+    private readonly ILogger<ManagersController> logger;
+
+    public AllocationsController(SecurityMasterDbContext db, AllowedFields<Allocation> allowedFields, ILogger<ManagersController> logger)
     {
         this.db = db;
         this.allowedFields = allowedFields;
+        this.logger = logger;
     }
 
     [HttpGet]

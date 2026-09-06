@@ -2,8 +2,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SecurityMaster.Core.Filtering;
 using SecurityMasterService.Data;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//logging
+var desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+var logPath = Path.Combine(desktopPath, "SecurityMasterService-log-.txt");
+builder.Host.UseSerilog((context, config) =>
+{
+    config
+        .MinimumLevel.Information()
+        .WriteTo.Console()
+        .WriteTo.File(logPath, rollingInterval: RollingInterval.Day);
+});
 
 builder.Services.AddControllers();
 

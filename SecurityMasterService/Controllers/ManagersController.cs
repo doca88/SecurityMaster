@@ -11,11 +11,13 @@ namespace SecurityMasterService.Controllers;
     {
     private readonly SecurityMasterDbContext db;
     private readonly AllowedFields<Manager> allowedFields;
+    private readonly ILogger<ManagersController> logger;
 
-    public ManagersController(SecurityMasterDbContext db, AllowedFields<Manager> allowedFields)
+    public ManagersController(SecurityMasterDbContext db, AllowedFields<Manager> allowedFields, ILogger<ManagersController> logger)
     {
         this.db = db;
         this.allowedFields = allowedFields;
+        this.logger = logger;
     }
 
     [HttpGet]
@@ -59,7 +61,7 @@ namespace SecurityMasterService.Controllers;
         await this.db.SaveChangesAsync();
         return Ok(manager);
     }
-    
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

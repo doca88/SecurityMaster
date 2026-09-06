@@ -11,22 +11,24 @@ public class OrdersController : ControllerBase
 {
     private readonly SecurityMasterDbContext db;
     private readonly AllowedFields<Order> allowedFields;
-
-    public OrdersController(SecurityMasterDbContext db, AllowedFields<Order> allowedFields)
+    private readonly ILogger<ManagersController> logger;
+    public OrdersController(SecurityMasterDbContext db, AllowedFields<Order> allowedFields, ILogger<ManagersController> logger)
     {
         this.db = db;
         this.allowedFields = allowedFields;
+        this.logger = logger;
     }
 
     [HttpGet]
     public async Task<IResult> Get()
     {
-         var baseQuery = this.db.Orders
-        .Include(o => o.Manager)
-        .Include(o => o.Strategy)
-        .Include(o => o.Security)
-        .Include(o => o.Allocations)
-        .AsQueryable();
+        var baseQuery = this.db.Orders
+       .Include(o => o.Manager)
+       .Include(o => o.Strategy)
+       .Include(o => o.Security)
+       .Include(o => o.Allocations)
+       .AsQueryable();
+        logger.LogInformation("Get orders is called!!!");
         return await QueryHelper.HandleQuery(Request.Query, baseQuery, this.allowedFields.Fields);
     }
 
