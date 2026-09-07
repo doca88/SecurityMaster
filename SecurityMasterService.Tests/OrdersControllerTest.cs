@@ -46,6 +46,110 @@ public class OrdersControllerTests
         return (manager, strategy, security);
     }
 
+   [Test]
+    public async Task Query_FilterByOrderIdEquals_ReturnsSingleMatchingOrder()
+    {
+        var (manager, strategy, security) = await SeedDependenciesAsync();
+
+        for (int i = 1; i <= 10; i++)
+        {
+            _db.Orders.Add(new Order
+            {
+                Quantity = 100,
+                TradeDate = DateTime.UtcNow,
+                ManagerId = manager.Id,
+                StrategyId = strategy.Id,
+                Sid = security.Sid,
+                Manager = manager,
+                Strategy = strategy,
+                Security = security
+            });
+        }
+        await _db.SaveChangesAsync();
+
+        var targetOrderId = _db.Orders.Skip(4).First().OrderId;
+
+        var query = new ServiceQuery<Order>
+        {
+            SortBy = "OrderId",
+            SortDescending = false,
+            Filters = new List<QueryFilter>
+            {
+                new QueryFilter { Field = "OrderId", Operator = FilterOperator.Equals, Value = targetOrderId.ToString() }
+            }
+        };
+
+        var actionResult = await _controller.Query(query);
+        var result = actionResult.Value;
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Has.Count.EqualTo(1));
+        Assert.That(result![0].OrderId, Is.EqualTo(targetOrderId));
+    }
+
+    [Test]
+    public async Task Query_NoFilters_ReturnsAllOrdersUpToPageSize()
+    {
+        var (manager, strategy, security) = await SeedDependenciesAsync();
+
+        for (int i = 1; i <= 5; i++)
+        {
+            _db.Orders.Add(new Order
+            {
+                Quantity = 100,
+                TradeDate = DateTime.UtcNow,
+                ManagerId = manager.Id,
+                StrategyId = strategy.Id,
+                Sid = security.Sid,
+                Manager = manager,
+                Strategy = strategy,
+                Security = security
+            });
+        }
+        await _db.SaveChangesAsync();
+
+        var query = new ServiceQuery<Order>();
+
+        var actionResult = await _controller.Query(query);
+        var result = actionResult.Value;
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Has.Count.EqualTo(5));
+    }
+
+    [Test]
+    public async Task Query_SortDescendingByOrderId_ReturnsOrdersInDescendingOrder()
+    {
+        var (manager, strategy, security) = await SeedDependenciesAsync();
+
+        for (int i = 1; i <= 3; i++)
+        {
+            _db.Orders.Add(new Order
+            {
+                Quantity = 100,
+                TradeDate = DateTime.UtcNow,
+                ManagerId = manager.Id,
+                StrategyId = strategy.Id,
+                Sid = security.Sid,
+                Manager = manager,
+                Strategy = strategy,
+                Security = security
+            });
+        }
+        await _db.SaveChangesAsync();
+
+        var query = new ServiceQuery<Order>
+        {
+            SortBy = "OrderId",
+            SortDescending = true
+        };
+
+        var actionResult = await _controller.Query(query);
+        var result = actionResult.Value;
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result, Is.Ordered.Descending.By(nameof(Order.OrderId)));
+    }
     [Test]
     public async Task Create_ValidRequest_AddsOrder()
     {

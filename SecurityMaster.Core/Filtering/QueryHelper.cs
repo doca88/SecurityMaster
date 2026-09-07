@@ -12,9 +12,6 @@ public static class QueryHelper
     {
         var query = new ServiceQuery<T>
         {
-            Page = int.TryParse(q["page"], out var p) && p > 0 ? p : 1,
-            PageSize = int.TryParse(q["pageSize"], out var ps) ? Math.Clamp(ps, 1, 200) : 20,
-            Search = q["search"].ToString() is { Length: > 0 } s ? s : null,
             SortBy = q["sortBy"].ToString() is { Length: > 0 } sb ? sb : null,
             SortDescending = bool.TryParse(q["sortDescending"], out var desc) && desc
         };

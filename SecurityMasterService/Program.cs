@@ -127,3 +127,16 @@ app.Run();
 // http://localhost:1111/orders?filter=Security.SID=1
 // http://localhost:1111/managers?sortBy=Display&sortDescending=true
 // http://localhost:1111/orders?filter=Allocations.ManagerId=1&sortBy=TradeDate&sortDescending=true
+
+// http://localhost:1111/orders/query
+// {
+//   "sortBy": "OrderId",
+//   "sortDescending": false,
+//   "filters": [
+//     {
+//       "field": "OrderId",
+//       "operator": "Equals",
+//       "value": "5"
+//     }
+//   ]
+// }

@@ -21,9 +21,6 @@ public enum FilterOperator
 
 public class ServiceQuery<T>
 {
-    public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 20;
-    public string? Search { get; set; }
     public string? SortBy { get; set; }
     public bool SortDescending { get; set; } = false;
     public List<QueryFilter> Filters { get; set; } = new();
@@ -36,14 +33,9 @@ public static class ServiceQueryExtensions
         ServiceQuery<T> serviceQuery,
         CancellationToken ct = default)
     {
-        if (serviceQuery.Page < 1) serviceQuery.Page = 1;
-        if (serviceQuery.PageSize < 1) serviceQuery.PageSize = 20;
-
         return await query
             .ApplyFilters(serviceQuery.Filters)
             .ApplySort(serviceQuery.SortBy, serviceQuery.SortDescending)
-            .Skip((serviceQuery.Page - 1) * serviceQuery.PageSize)
-            .Take(serviceQuery.PageSize)
             .ToListAsync(ct);
     }
 
