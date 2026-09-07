@@ -43,7 +43,7 @@ public static class QueryHelper
         var (query, filtered, error) = BuildServiceQuery(q, baseQuery, allowedFilterFields);
         if (error != null) return Results.BadRequest($"Invalid filter: {error}");
 
-        var data = await filtered.ExecuteAsync(query, typeof(T));
+        var data = await filtered.ExecuteAsync(query);
         return Results.Ok(data);
     }
 }

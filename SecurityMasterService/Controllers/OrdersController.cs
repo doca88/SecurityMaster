@@ -19,18 +19,23 @@ public class OrdersController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpGet]
-    public async Task<IResult> Get()
+    [HttpPost("query")]
+    public async Task<ActionResult<List<Order>>> Query([FromBody] ServiceQuery<Order> query)
     {
         var baseQuery = this.db.Orders
-       .Include(o => o.Manager)
-       .Include(o => o.Strategy)
-       .Include(o => o.Security)
-       .Include(o => o.Allocations)
-       .AsQueryable();
-        logger.LogInformation("Get orders is called!!!");
-        return await QueryHelper.HandleQuery(Request.Query, baseQuery, this.allowedFields.Fields);
+        .Include(o => o.Manager)
+        .Include(o => o.Strategy)
+        .Include(o => o.Security)
+        .Include(o => o.Allocations)
+            .ThenInclude(a => a.Manager)
+        .Include(o => o.Allocations)
+            .ThenInclude(a => a.Strategy)
+        .AsNoTracking()
+        .AsQueryable();
+
+       return await baseQuery.ExecuteAsync(query);
     }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)

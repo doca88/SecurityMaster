@@ -16,6 +16,11 @@ builder.Host.UseSerilog((context, config) =>
         .WriteTo.Console()
         .WriteTo.File(logPath, rollingInterval: RollingInterval.Day);
 });
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 builder.Services.AddControllers();
 
