@@ -23,7 +23,7 @@ public class StrategiesControllerTests
         _db = new SecurityMasterDbContext(options);
 
         var allowedFields = new AllowedFields<Strategy>(FilterFieldResolver.GetAllowedFields(typeof(Strategy)));
-        _controller = new StrategiesController(_db, allowedFields);
+        _controller = new StrategiesController(_db, allowedFields, null!);
     }
 
     [TearDown]

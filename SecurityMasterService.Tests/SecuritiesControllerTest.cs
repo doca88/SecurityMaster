@@ -23,7 +23,7 @@ public class SecuritiesControllerTests
         _db = new SecurityMasterDbContext(options);
 
         var allowedFields = new AllowedFields<Security>(FilterFieldResolver.GetAllowedFields(typeof(Security)));
-        _controller = new SecuritiesController(_db, allowedFields);
+        _controller = new SecuritiesController(_db, allowedFields, null!);
     }
 
     [TearDown]

@@ -23,7 +23,7 @@ public class OrdersControllerTests
         _db = new SecurityMasterDbContext(options);
 
         var allowedFields = new AllowedFields<Order>(FilterFieldResolver.GetAllowedFields(typeof(Order)));
-        _controller = new OrdersController(_db, allowedFields);
+        _controller = new OrdersController(_db, allowedFields, null!);
     }
 
     [TearDown]

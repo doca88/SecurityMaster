@@ -23,7 +23,7 @@ public class AllocationsControllerTests
         _db = new SecurityMasterDbContext(options);
 
         var allowedFields = new AllowedFields<Allocation>(FilterFieldResolver.GetAllowedFields(typeof(Allocation)));
-        _controller = new AllocationsController(_db, allowedFields);
+        _controller = new AllocationsController(_db, allowedFields, null!);
     }
 
     [TearDown]
@@ -56,7 +56,6 @@ public class AllocationsControllerTests
         };
         _db.Orders.Add(order);
         await _db.SaveChangesAsync();
-
         return (manager, strategy, security, order);
     }
 
