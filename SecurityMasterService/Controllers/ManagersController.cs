@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SecurityMaster.Core.Filtering;
 using SecurityMasterService.Data;
 
 namespace SecurityMasterService.Controllers;
@@ -10,13 +9,12 @@ namespace SecurityMasterService.Controllers;
     public class ManagersController : ControllerBase
     {
     private readonly SecurityMasterDbContext db;
-    private readonly AllowedFields<Manager> allowedFields;
+
     private readonly ILogger<ManagersController> logger;
 
-    public ManagersController(SecurityMasterDbContext db, AllowedFields<Manager> allowedFields, ILogger<ManagersController> logger)
+    public ManagersController(SecurityMasterDbContext db, ILogger<ManagersController> logger)
     {
         this.db = db;
-        this.allowedFields = allowedFields;
         this.logger = logger;
     }
 

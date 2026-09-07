@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SecurityMaster.Core.Filtering;
 using SecurityMasterService.Data;
 
 namespace SecurityMasterService.Controllers;
@@ -10,14 +9,12 @@ namespace SecurityMasterService.Controllers;
 public class AllocationsController : ControllerBase
 {
     private readonly SecurityMasterDbContext db;
-    private readonly AllowedFields<Allocation> allowedFields;
 
     private readonly ILogger<ManagersController> logger;
 
-    public AllocationsController(SecurityMasterDbContext db, AllowedFields<Allocation> allowedFields, ILogger<ManagersController> logger)
+    public AllocationsController(SecurityMasterDbContext db, ILogger<ManagersController> logger)
     {
         this.db = db;
-        this.allowedFields = allowedFields;
         this.logger = logger;
     }
 

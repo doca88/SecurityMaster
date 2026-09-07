@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SecurityMaster.Core.Filtering;
 using SecurityMasterService.Data;
 using Serilog;
 
@@ -26,12 +25,6 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 builder.Services.AddDbContext<SecurityMasterDbContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddSingleton(new AllowedFields<Order>(FilterFieldResolver.GetAllowedFields(typeof(Order))));
-builder.Services.AddSingleton(new AllowedFields<Security>(FilterFieldResolver.GetAllowedFields(typeof(Security))));
-builder.Services.AddSingleton(new AllowedFields<Allocation>(FilterFieldResolver.GetAllowedFields(typeof(Allocation))));
-builder.Services.AddSingleton(new AllowedFields<Manager>(FilterFieldResolver.GetAllowedFields(typeof(Manager))));
-builder.Services.AddSingleton(new AllowedFields<Strategy>(FilterFieldResolver.GetAllowedFields(typeof(Strategy))));
 
 var app = builder.Build();
 

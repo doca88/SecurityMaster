@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-using SecurityMaster.Core.Filtering;
 using SecurityMasterService.Controllers;
 using SecurityMasterService.Data;
 
@@ -22,8 +21,7 @@ public class StrategiesControllerTests
 
         _db = new SecurityMasterDbContext(options);
 
-        var allowedFields = new AllowedFields<Strategy>(FilterFieldResolver.GetAllowedFields(typeof(Strategy)));
-        _controller = new StrategiesController(_db, allowedFields, null!);
+        _controller = new StrategiesController(_db, null!);
     }
 
     [TearDown]

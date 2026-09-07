@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-using SecurityMaster.Core.Filtering;
 using SecurityMasterService.Controllers;
 using SecurityMasterService.Data;
 
@@ -22,8 +21,7 @@ public class OrdersControllerTests
 
         _db = new SecurityMasterDbContext(options);
 
-        var allowedFields = new AllowedFields<Order>(FilterFieldResolver.GetAllowedFields(typeof(Order)));
-        _controller = new OrdersController(_db, allowedFields, null!);
+        _controller = new OrdersController(_db, null!);
     }
 
     [TearDown]

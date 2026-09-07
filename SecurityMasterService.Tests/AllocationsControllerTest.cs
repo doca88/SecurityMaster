@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-using SecurityMaster.Core.Filtering;
 using SecurityMasterService.Controllers;
 using SecurityMasterService.Data;
 
@@ -21,9 +20,7 @@ public class AllocationsControllerTests
             .Options;
 
         _db = new SecurityMasterDbContext(options);
-
-        var allowedFields = new AllowedFields<Allocation>(FilterFieldResolver.GetAllowedFields(typeof(Allocation)));
-        _controller = new AllocationsController(_db, allowedFields, null!);
+        _controller = new AllocationsController(_db, null!);
     }
 
     [TearDown]
