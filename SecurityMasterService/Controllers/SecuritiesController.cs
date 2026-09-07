@@ -20,11 +20,12 @@ public class SecuritiesController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpGet]
-    public async Task<IResult> Get()
+    [HttpPost("query")]
+    public async Task<ActionResult<List<Security>>> Query([FromBody] ServiceQuery<Security> query)
     {
-        var baseQuery = this.db.Securities.AsQueryable();
-        return await QueryHelper.HandleQuery(Request.Query, baseQuery, this.allowedFields.Fields);
+
+        var baseQuery = this.db.Securities.AsNoTracking().AsQueryable();
+            return await baseQuery.ExecuteAsync(query);
     }
 
     [HttpGet("{sid}")]

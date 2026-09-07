@@ -21,14 +21,16 @@ public class AllocationsController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpGet]
-    public async Task<IResult> Get()
+    [HttpPost("query")]
+    public async Task<ActionResult<List<Allocation>>> Query([FromBody] ServiceQuery<Allocation> query)
     {
         var baseQuery = this.db.Allocations
-        .Include(a => a.Manager)
-        .Include(a => a.Strategy)
-        .AsQueryable();
-        return await QueryHelper.HandleQuery(Request.Query, baseQuery, this.allowedFields.Fields);
+            .Include(a => a.Manager)
+            .Include(a => a.Strategy)
+            .AsNoTracking()
+            .AsQueryable();
+
+        return await baseQuery.ExecuteAsync(query);
     }
 
     [HttpGet("{id}")]

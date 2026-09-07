@@ -20,11 +20,11 @@ public class StrategiesController : ControllerBase
         this.logger = logger;
     }
 
-    [HttpGet]
-    public async Task<IResult> Get()
+    [HttpPost("query")]
+    public async Task<ActionResult<List<Strategy>>> Query([FromBody] ServiceQuery<Strategy> query)
     {
-        var baseQuery = this.db.Strategies.AsQueryable();
-        return await QueryHelper.HandleQuery(Request.Query, baseQuery, this.allowedFields.Fields);
+        var baseQuery = this.db.Strategies.AsNoTracking().AsQueryable();
+        return await baseQuery.ExecuteAsync(query);
     }
 
     [HttpGet("{id}")]

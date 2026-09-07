@@ -20,11 +20,11 @@ namespace SecurityMasterService.Controllers;
         this.logger = logger;
     }
 
-    [HttpGet]
-    public async Task<IResult> Get()
+    [HttpPost("query")]
+    public async Task<ActionResult<List<Manager>>> Query([FromBody] ServiceQuery<Manager> query)
     {
-        var baseQuery = this.db.Managers.AsQueryable();
-        return await QueryHelper.HandleQuery(Request.Query, baseQuery, this.allowedFields.Fields);
+        var baseQuery = this.db.Managers.AsNoTracking().AsQueryable();
+        return await baseQuery.ExecuteAsync(query);
     }
 
     [HttpGet("{id}")]
