@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/SecurityMasterService/SecurityMasterService.csproj",
+               "${workspaceFolder}/SecurityMasterService/SecurityMasterService.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

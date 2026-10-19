@@ -24,7 +24,8 @@ builder.Services.AddControllers()
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
-builder.Services.AddDbContext<SecurityMasterDbContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<SecurityMasterDbContext>(x => x.UseSqlServer(connectionString));
 
 var app = builder.Build();
 
