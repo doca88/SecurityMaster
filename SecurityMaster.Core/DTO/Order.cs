@@ -20,4 +20,13 @@ public class CreateOrderRequest
     public int ManagerId { get; set; }
     public int StrategyId { get; set; }
     public long Sid { get; set; }
+     public List<AllocationRequest> Allocations { get; set; } = new List<AllocationRequest>();
+}
+
+public class AllocationRequest
+{
+    public int AllocationId { get; set; }   // 0 = nova alokacija
+    public int ManagerId { get; set; }
+    public int StrategyId { get; set; }
+    public decimal Quantity { get; set; }
 }
