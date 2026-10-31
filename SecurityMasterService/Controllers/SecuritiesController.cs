@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SecurityMasterService.Data;
+using SecurityMasterService.Hubs;
 
 namespace SecurityMasterService.Controllers;
 
@@ -9,12 +11,14 @@ namespace SecurityMasterService.Controllers;
 public class SecuritiesController : ControllerBase
 {
     private readonly SecurityMasterDbContext db;
-    private readonly ILogger<ManagersController> logger;
-
-    public SecuritiesController(SecurityMasterDbContext db, ILogger<ManagersController> logger)
+    private readonly ILogger<SecuritiesController> logger;
+    private readonly IHubContext<NotificationHub> hub;
+    
+    public SecuritiesController(SecurityMasterDbContext db, ILogger<SecuritiesController> logger, IHubContext<NotificationHub> hub)
     {
         this.db = db;
         this.logger = logger;
+        this.hub = hub;
     }
 
     [HttpPost("query")]
@@ -45,6 +49,7 @@ public class SecuritiesController : ControllerBase
 
         this.db.Securities.Add(security);
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.SecuritiesChanged);
         return Created($"/securities/{security.Sid}", security);
     }
 
@@ -58,6 +63,7 @@ public class SecuritiesController : ControllerBase
         security.Description = request.Description;
 
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.SecuritiesChanged);
         return Ok(security);
     }
 
@@ -73,6 +79,7 @@ public class SecuritiesController : ControllerBase
             return Conflict("Security is already used, unable to delete it.");
 
         this.db.Securities.Remove(security);
+         await this.hub.Clients.All.SendAsync(NotificationHub.SecuritiesChanged);
         await this.db.SaveChangesAsync();
         return Ok();
     }

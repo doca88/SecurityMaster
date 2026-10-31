@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SecurityMasterService.Data;
+using SecurityMasterService.Hubs;
 
 namespace SecurityMasterService.Controllers;
 
@@ -10,12 +12,14 @@ public class AllocationsController : ControllerBase
 {
     private readonly SecurityMasterDbContext db;
 
-    private readonly ILogger<ManagersController> logger;
-
-    public AllocationsController(SecurityMasterDbContext db, ILogger<ManagersController> logger)
+    private readonly ILogger<AllocationsController> logger;
+    private readonly IHubContext<NotificationHub> hub;
+    
+    public AllocationsController(SecurityMasterDbContext db, ILogger<AllocationsController> logger, IHubContext<NotificationHub> hub)
     {
         this.db = db;
         this.logger = logger;
+        this.hub = hub;
     }
 
     [HttpPost("query")]
@@ -70,6 +74,7 @@ public class AllocationsController : ControllerBase
 
         this.db.Allocations.Add(allocation);
         await this.db.SaveChangesAsync();
+     await this.hub.Clients.All.SendAsync(NotificationHub.AllocationChanged);
         return Created($"/allocations/{allocation.AllocationId}", allocation);
     }
 
@@ -86,6 +91,7 @@ public class AllocationsController : ControllerBase
         allocation.OrderId = request.OrderId;
 
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.AllocationChanged);
         return Ok(allocation);
     }
 
@@ -98,6 +104,7 @@ public class AllocationsController : ControllerBase
 
         this.db.Allocations.Remove(allocation);
         await this.db.SaveChangesAsync();
+     await this.hub.Clients.All.SendAsync(NotificationHub.AllocationChanged);
         return Ok();
     }
 }

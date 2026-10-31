@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SecurityMasterService.Data;
+using SecurityMasterService.Hubs;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,8 @@ builder.Services.AddOpenApi();
 var connectionString = builder.Configuration.GetConnectionString(Environment.MachineName);
 builder.Services.AddDbContext<SecurityMasterDbContext>(x => x.UseSqlServer(connectionString));
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 //TODO
@@ -35,6 +38,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapControllers();
 
+app.MapHub<NotificationHub>("/hubs/notifications");
 // get
 //app.MapFilterableGet<SecurityMasterDbContext, Order>("/orders", "GetOrders", db => db.Orders
    // .AsNoTracking()

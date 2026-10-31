@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SecurityMasterService.Data;
+using SecurityMasterService.Hubs;
 
 namespace SecurityMasterService.Controllers;
 
@@ -9,12 +11,13 @@ namespace SecurityMasterService.Controllers;
 public class StrategiesController : ControllerBase
 {
     private readonly SecurityMasterDbContext db;
-    private readonly ILogger<ManagersController> logger;
-
-    public StrategiesController(SecurityMasterDbContext db, ILogger<ManagersController> logger)
+    private readonly ILogger<StrategiesController> logger;
+    private readonly IHubContext<NotificationHub> hub;
+    public StrategiesController(SecurityMasterDbContext db, ILogger<StrategiesController> logger, IHubContext<NotificationHub> hub)
     {
         this.db = db;
         this.logger = logger;
+        this.hub = hub;
     }
 
     [HttpPost("query")]
@@ -43,6 +46,7 @@ public class StrategiesController : ControllerBase
 
         this.db.Strategies.Add(strategy);
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.StrategiesChanged);
         return Created($"/strategies/{strategy.Id}", strategy);
     }
 
@@ -56,6 +60,7 @@ public class StrategiesController : ControllerBase
         strategy.Display = request.Display;
 
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.StrategiesChanged);
         return Ok(strategy);
     }
 
@@ -72,6 +77,7 @@ public class StrategiesController : ControllerBase
 
         this.db.Strategies.Remove(strategy);
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.StrategiesChanged);
         return Ok();
     }
 }

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SecurityMasterService.Data;
+using SecurityMasterService.Hubs;
 
 namespace SecurityMasterService.Controllers;
 
@@ -11,11 +13,13 @@ namespace SecurityMasterService.Controllers;
     private readonly SecurityMasterDbContext db;
 
     private readonly ILogger<ManagersController> logger;
-
-    public ManagersController(SecurityMasterDbContext db, ILogger<ManagersController> logger)
+    private readonly IHubContext<NotificationHub> hub;
+    
+    public ManagersController(SecurityMasterDbContext db, ILogger<ManagersController> logger, IHubContext<NotificationHub> hub)
     {
         this.db = db;
         this.logger = logger;
+        this.hub = hub;
     }
 
     [HttpPost("query")]
@@ -44,6 +48,7 @@ namespace SecurityMasterService.Controllers;
 
         this.db.Managers.Add(manager);
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.ManagersChanged);
         return Created($"/managers/{manager.Id}", manager);
     }
 
@@ -57,6 +62,7 @@ namespace SecurityMasterService.Controllers;
         manager.Display = request.Display;
 
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.ManagersChanged);
         return Ok(manager);
     }
 
@@ -73,6 +79,7 @@ namespace SecurityMasterService.Controllers;
 
         this.db.Managers.Remove(manager);
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.ManagersChanged);
         return Ok();
     }
 }

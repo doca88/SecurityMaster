@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SecurityMasterService.Data;
+using SecurityMasterService.Hubs;
 
 namespace SecurityMasterService.Controllers;
 
@@ -10,11 +12,14 @@ public class OrdersController : ControllerBase
 {
     private readonly SecurityMasterDbContext db;
     private readonly ILogger<OrdersController> logger;
-    public OrdersController(SecurityMasterDbContext db, ILogger<OrdersController> logger)
-    {
-        this.db = db;
-        this.logger = logger;
-    }
+    private readonly IHubContext<NotificationHub> hub;
+    
+   public OrdersController(SecurityMasterDbContext db, ILogger<OrdersController> logger, IHubContext<NotificationHub> hub)
+{
+    this.db = db;
+    this.logger = logger;
+    this.hub = hub;
+}
 
     [HttpPost("query")]
     public async Task<ActionResult<List<Order>>> Query([FromBody] ServiceQuery<Order> query)
@@ -82,7 +87,7 @@ public class OrdersController : ControllerBase
 
         this.db.Orders.Add(order);
         await this.db.SaveChangesAsync();
-
+        await this.hub.Clients.All.SendAsync(NotificationHub.OrderChanged);
         // Vraćamo nalog ponovo učitan iz baze, da alokacije imaju Manager i Strategy
         return Created($"/orders/{order.OrderId}", await this.LoadOrder(order.OrderId));
     }
@@ -138,6 +143,7 @@ public class OrdersController : ControllerBase
         }
 
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.OrderChanged);
         return Ok(await this.LoadOrder(id));
     }
 
@@ -154,6 +160,7 @@ public class OrdersController : ControllerBase
 
         this.db.Orders.Remove(order);
         await this.db.SaveChangesAsync();
+        await this.hub.Clients.All.SendAsync(NotificationHub.OrderChanged);
         return Ok();
     }
 
