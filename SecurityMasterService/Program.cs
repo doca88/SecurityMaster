@@ -1,5 +1,8 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SecurityMasterService.Data;
 using SecurityMasterService.Hubs;
 using Serilog;
@@ -22,13 +25,46 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
-builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 var connectionString = builder.Configuration.GetConnectionString(Environment.MachineName);
 builder.Services.AddDbContext<SecurityMasterDbContext>(x => x.UseSqlServer(connectionString));
 
 builder.Services.AddSignalR();
+
+// AUTH: JWT provera na svakom zahtevu
+var jwt = builder.Configuration.GetSection("Jwt");
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        // šta se proverava na svakom zahtevu
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwt["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwt["Audience"],
+            ValidateLifetime = true,                 // istekao token = 401
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!)),
+        };
+
+        // SignalR: browser ne može da pošalje header uz WebSocket, pa token stiže u query stringu
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var token = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(token) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                    context.Token = token;
+                return Task.CompletedTask;
+            },
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -138,3 +174,6 @@ app.Run();
 //     }
 //   ]
 // }
+
+
+//dotnet add "C:\SecurityMaster\SecurityMaster\SecurityMasterService\SecurityMasterService.csproj" package Microsoft.AspNetCore.Authentication.JwtBearer --version 9.*
