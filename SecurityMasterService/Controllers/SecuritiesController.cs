@@ -43,7 +43,6 @@ public class SecuritiesController : ControllerBase
     {
         var security = new Security
         {
-            Sid = request.Sid,
             Description = request.Description
         };
 
